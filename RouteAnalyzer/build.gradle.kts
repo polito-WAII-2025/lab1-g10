@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.10"
+    application
 }
 
 group = "it.polito.wa2"
@@ -18,4 +19,7 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(17)
+}
+application{
+    mainClass= "it.polito.wa2.MainKt"
 }
