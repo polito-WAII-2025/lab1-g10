@@ -1,0 +1,5 @@
+# Ignora la cartella di configurazione di IntelliJ IDEA
+.idea/
+
+# Ignora tutti i file con estensione .iml
+*.iml
