@@ -23,3 +23,9 @@ kotlin {
 application{
     mainClass= "it.polito.wa2.MainKt"
 }
+
+tasks.jar{
+    manifest{
+        attributes["Main-Class"] = "it.polito.wa2.MainKt"
+    }
+}
