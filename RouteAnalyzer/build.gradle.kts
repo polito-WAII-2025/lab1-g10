@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.1.10"
-    kotlin("plugin.serialization") version "1.9.0"
+    kotlin("plugin.serialization") version "2.1.10"
+    id("com.gradleup.shadow") version "8.3.6"
     application
 }
 
@@ -13,25 +14,24 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
 }
 
 tasks.test {
     useJUnitPlatform()
 }
-kotlin {
-    jvmToolchain(17)
-    sourceSets.all {
-        languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-    }
-}
-application{
-    mainClass= "it.polito.wa2.MainKt"
-}
 
 tasks.jar{
     manifest{
         attributes["Main-Class"] = "it.polito.wa2.MainKt"
     }
+}
+
+kotlin {
+    jvmToolchain(17)
+
+}
+application{
+    mainClass= "it.polito.wa2.MainKt"
 }
