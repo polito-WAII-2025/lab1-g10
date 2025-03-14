@@ -38,6 +38,23 @@ fun maxDistanceFromStart(waypoints: List<Waypoint>): MaxDistanceResult? {
 
     return farthest?.let { MaxDistanceResult(WaypointDistance(it, maxDistance)) }
 }
+fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double): Waypoint? {
+    if (waypoints.isEmpty()) return null
+
+    var maxCount = 0
+    var bestCenter: Waypoint? = null
+
+    for (center in waypoints) {
+        val count = waypoints.count { wp -> haversine(center.latitude, center.longitude, wp.latitude, wp.longitude) <= radius }
+
+        if (count > maxCount) {
+            maxCount = count
+            bestCenter = center
+        }
+    }
+
+    return bestCenter
+}
 
 fun readCsv(percorsoFile: String): List<Waypoint> {
     val waypointList = mutableListOf<Waypoint>()
@@ -73,6 +90,6 @@ fun main() {
         println(jsonResult)
     }
 
-    //val bestArea = mostFrequentedArea(points, 200.0) // 200 metri di raggio
-    //println("Most frequented area center: $bestArea")
+    val bestArea = mostFrequentedArea(points, 200.0) // 200 metri di raggio
+    println("Most frequented area center: $bestArea")
 }
