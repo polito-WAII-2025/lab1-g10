@@ -5,6 +5,21 @@ import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+
+@JsonIgnoreProperties(ignoreUnknown = true) // Ignora eventuali campi extra nel file YAML
+data class Config @JsonCreator constructor(
+    @JsonProperty("earthRadiusKm") val earthRadiusKm: Double,
+    @JsonProperty("geofenceCenterLatitude") val geofenceCenterLatitude: Double,
+    @JsonProperty("geofenceCenterLongitude") val geofenceCenterLongitude: Double,
+    @JsonProperty("geofenceRadiusKm") val geofenceRadiusKm: Double,
+    @JsonProperty("mostFrequentedAreaRadiusKm") val mostFrequentedAreaRadiusKm: Double? = null
+)
+
+
 @Serializable
 data class Waypoint(val timestamp: String, val latitude: Double, val longitude: Double)
 
@@ -14,8 +29,24 @@ data class MaxDistanceResult(val maxDistanceFromStart: WaypointDistance)
 @Serializable
 data class WaypointDistance(val waypoint: Waypoint, val distanceKm: Double)
 
-fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-    val R = 6371e3 // Raggio della Terra in metri
+fun loadConfig(filePath: String): Config? {
+    return try {
+        val file = File(filePath)
+        if (!file.exists()) {
+            println("Errore: Il file YAML non esiste -> $filePath")
+            return null
+        }
+
+        val yamlMapper = YAMLMapper()
+        yamlMapper.readValue(file, Config::class.java) // Converte il YAML in Config
+    } catch (e: Exception) {
+        println("Errore nella lettura del file YAML: ${e.message}")
+        null
+    }
+}
+
+fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiusKm: Double): Double {
+
     val phi1 = Math.toRadians(lat1)
     val phi2 = Math.toRadians(lat2)
     val deltaPhi = Math.toRadians(lat2 - lat1)
@@ -26,26 +57,26 @@ fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
             sin(deltaLambda / 2) * sin(deltaLambda / 2)
     val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-    return (R * c) / 1000 // Converti in km
+    return (earthRadiusKm * c) / 1000 // Converti in km
 }
 
-fun maxDistanceFromStart(waypoints: List<Waypoint>): MaxDistanceResult? {
+fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxDistanceResult? {
     if (waypoints.isEmpty()) return null
 
     val start = waypoints.first()
-    val farthest = waypoints.maxByOrNull { haversine(start.latitude, start.longitude, it.latitude, it.longitude) }
-    val maxDistance = farthest?.let { haversine(start.latitude, start.longitude, it.latitude, it.longitude) } ?: 0.0
+    val farthest = waypoints.maxByOrNull { haversine(start.latitude, start.longitude, it.latitude, it.longitude,earthRadiusKm) }
+    val maxDistance = farthest?.let { haversine(start.latitude, start.longitude, it.latitude, it.longitude,earthRadiusKm) } ?: 0.0
 
     return farthest?.let { MaxDistanceResult(WaypointDistance(it, maxDistance)) }
 }
-fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double): Waypoint? {
+fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm: Double): Waypoint? {
     if (waypoints.isEmpty()) return null
 
     var maxCount = 0
     var bestCenter: Waypoint? = null
 
     for (center in waypoints) {
-        val count = waypoints.count { wp -> haversine(center.latitude, center.longitude, wp.latitude, wp.longitude) <= radius }
+        val count = waypoints.count { wp -> haversine(center.latitude, center.longitude, wp.latitude, wp.longitude, earthRadiusKm) <= radius }
 
         if (count > maxCount) {
             maxCount = count
@@ -80,8 +111,8 @@ fun readCsv(percorsoFile: String): List<Waypoint> {
 fun main() {
     val points = readCsv("src/main/resources/waypoints.csv")
     //points.forEach{println(it)}
-
-    val result = maxDistanceFromStart(points)
+    val config = loadConfig("src/main/resources/custom-parameters.yml")
+    val result = maxDistanceFromStart(points, config!!.earthRadiusKm)
 
     if (result != null) {
         val jsonResult = Json.encodeToString(result)
@@ -90,6 +121,7 @@ fun main() {
         println(jsonResult)
     }
 
-    val bestArea = mostFrequentedArea(points, 200.0) // 200 metri di raggio
+    val bestArea = mostFrequentedArea(points, 200.0, config.earthRadiusKm) // 200 metri di raggio
     println("Most frequented area center: $bestArea")
+    println(config.earthRadiusKm)
 }
