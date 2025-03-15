@@ -69,6 +69,25 @@ fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxD
 
     return farthest?.let { MaxDistanceResult(WaypointDistance(it, maxDistance)) }
 }
+fun maxDistanceBetweenPoints(waypoints: List<Waypoint>, earthRadiusKm: Double): Double {
+    var maxDistance = 0.0
+
+    for (i in waypoints.indices) {
+        for (j in i + 1 until waypoints.size) {
+            val distance = haversine(
+                waypoints[i].latitude, waypoints[i].longitude,
+                waypoints[j].latitude, waypoints[j].longitude,
+                earthRadiusKm
+            )
+            if (distance > maxDistance) {
+                maxDistance = distance
+            }
+        }
+    }
+
+    return maxDistance
+}
+
 fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm: Double): Waypoint? {
     if (waypoints.isEmpty()) return null
 
@@ -87,12 +106,29 @@ fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm:
     return bestCenter
 }
 
+fun waypointsOutsideGeofence(waypoints: List<Waypoint>,centerLat: Double,centerLon: Double,radius: Double,earthRadiusKm: Double): Map<String, Any> {
+    val countOutside = waypoints.count { wp ->
+        haversine(wp.latitude, wp.longitude, centerLat, centerLon, earthRadiusKm) > radius
+    }
+
+    return mapOf(
+        "waypointsOutsideGeofence" to mapOf(
+            "centralWaypoint" to mapOf(
+                "timestamp" to 0,
+                "latitude" to centerLat,
+                "longitude" to centerLon
+            ),
+            "areaRadiusKm" to radius,
+            "count" to countOutside
+        )
+    )
+}
+
 fun readCsv(percorsoFile: String): List<Waypoint> {
     val waypointList = mutableListOf<Waypoint>()
 
     File(percorsoFile).bufferedReader().useLines { lines ->
-        lines.drop(1)
-            .forEach { line ->
+        lines.forEach { line ->
                 val fields = line.split(";")
                 if (fields.size == 3) {
                     val waypoint = Waypoint(
@@ -124,4 +160,8 @@ fun main() {
     val bestArea = mostFrequentedArea(points, 200.0, config.earthRadiusKm) // 200 metri di raggio
     println("Most frequented area center: $bestArea")
     println(config.earthRadiusKm)
+    val outside = waypointsOutsideGeofence(points, config.geofenceCenterLatitude, config.geofenceCenterLongitude, config.geofenceRadiusKm, config.earthRadiusKm)
+    println(outside)
+    val max = maxDistanceBetweenPoints(points, config.earthRadiusKm)
+    println(max)
 }
