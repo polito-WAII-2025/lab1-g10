@@ -180,6 +180,19 @@ fun readCsv(percorsoFile: String): List<Waypoint> {
 }
 
 fun main() {
+
+    /* DOCKER */
+
+    //val points = File("evaluation/waypoints.csv").readText() --> apertura file waypoints.csv montato su docker
+
+    // Creazioni e scrittura file output.json su docker
+    //val directory= File("evaluation")
+    //val file= File(directory, "output.json")
+    //file.writeText("ciao")
+
+    // val points = File("resources/waypoints.csv").readText() --> apertura file waypoints.csv standard (inserito su docker)
+
+
     try { val points = readCsv("src/main/resources/waypoints.csv")
         //points.forEach{println(it)}
         val config = loadConfig("src/main/resources/custom-parameters.yml")
