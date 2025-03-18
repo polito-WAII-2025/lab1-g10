@@ -172,7 +172,8 @@ fun readCsv(percorsoFile: String): List<Waypoint> {
             }
         }
     } catch (e: Exception) {
-        println("The program was interrupted due to an error: ${e.message}")        throw e
+        println("The program was interrupted due to an error: ${e.message}")
+        throw e
     }
 
     return waypointList
