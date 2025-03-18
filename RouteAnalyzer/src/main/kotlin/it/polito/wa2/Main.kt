@@ -39,14 +39,14 @@ fun loadConfig(filePath: String): Config? {
     return try {
         val file = File(filePath)
         if (!file.exists()) {
-            println("Errore: Il file YAML non esiste -> $filePath")
+            println("Error: The YAML file does not exist -> $filePath")
             return null
         }
 
         val yamlMapper = YAMLMapper()
         yamlMapper.readValue(file, Config::class.java) // Converte il YAML in Config
     } catch (e: Exception) {
-        println("Errore nella lettura del file YAML: ${e.message}")
+        println("Error reading the YAML file: ${e.message}")
         null
     }
 }
@@ -138,19 +138,19 @@ fun waypointsOutsideGeofence(
 
 fun readCsv(percorsoFile: String): List<Waypoint> {
     if (!percorsoFile.endsWith(".csv")) {
-        println("Errore: Il file $percorsoFile non è un file CSV valido.")
-        throw IllegalArgumentException("Il file deve avere estensione .csv")
+        println("Error: The file $percorsoFile is not a valid CSV file.")
+        throw IllegalArgumentException("The file must have a .csv extension")
     }
 
     val file = File(percorsoFile)
     if (!file.exists()) {
-        println("Errore: Il file $percorsoFile non esiste.")
-        throw IllegalStateException("Il file CSV non è stato trovato")
+        println("Error: The file $percorsoFile doesn't exist.")
+        throw IllegalStateException("The CSV file was not found.")
     }
 
     if (file.length() == 0L) {
-        println("Errore: Il file $percorsoFile è vuoto.")
-        throw IllegalStateException("Il file CSV è vuoto")
+        println("Error: The file $percorsoFile is empty.")
+        throw IllegalStateException("The CSV file is empty.")
     }
 
     val waypointList = mutableListOf<Waypoint>()
@@ -167,13 +167,12 @@ fun readCsv(percorsoFile: String): List<Waypoint> {
                     )
                     waypointList.add(waypoint)
                 } else {
-                    println("Attenzione: Riga con formato errato -> $line")
+                    println("Warning: Line witch incorrect format -> $line")
                 }
             }
         }
     } catch (e: Exception) {
-        println("Errore durante la lettura del file CSV: ${e.message}")
-        throw e
+        println("The program was interrupted due to an error: ${e.message}")        throw e
     }
 
     return waypointList
@@ -201,7 +200,7 @@ fun main() {
         if (result != null) {
             val jsonResult = Json.encodeToString(result)
             //File("max_distance_result.json").writeText(jsonResult)
-            //println("Risultato salvato in max_distance_result.json")
+            //println("Result saved in max_distance_result.json")
             println(jsonResult)
         }
 
@@ -217,9 +216,8 @@ fun main() {
         val jsonResult = Json.encodeToString(analysisResult)
         File("src/main/resources/output.json").writeText(jsonResult)
 
-        println("Risultato salvato in output.json")
+        println("Result saved in output.json")
     } catch (e: Exception) {
-        println("Il programma è stato interrotto a causa di un errore: ${e.message}")
-    }
+        println("The program was interrupted due to an error: ${e.message}")    }
 
 }
