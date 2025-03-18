@@ -63,7 +63,7 @@ fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiu
             sin(deltaLambda / 2) * sin(deltaLambda / 2)
     val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-    return (earthRadiusKm * c) / 1000 // Converti in km
+    return (earthRadiusKm * c)
 }
 
 fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxDistanceResult? {
