@@ -153,11 +153,11 @@ fun readCsv(file: File): List<Waypoint> {
 }
 
 fun mountFiles(): HandlerFile {
-    val directory= File("inputFiles")
+    val directory= File("files")
     if (!directory.exists()) {
         println("Error: Folder not found\nMount standard folder")
 
-        return HandlerFile(File("defaultInputFiles/waypoints.csv"),File("defaultInputFiles/custom-parameters.yml"))
+        return HandlerFile(File("defaultFiles/waypoints.csv"),File("defaultFiles/custom-parameters.yml"))
     }
 
     val waypointsFile = File(directory, "waypoints.csv")
@@ -171,16 +171,16 @@ fun mountFiles(): HandlerFile {
             return HandlerFile(waypointsFile, customFile)
         }
         println("Error: custom-parameters.yml not found\nMount standard custom-parameters.yml")
-        return HandlerFile(waypointsFile, File("defaultInputFiles/custom-parameters.yml"))
+        return HandlerFile(waypointsFile, File("defaultFiles/custom-parameters.yml"))
     }
 
     if(checkCustom){
         println("Error: waypoints.csv not found\nMount standard waypoints.csv")
-        return HandlerFile(File("defaultInputFiles/waypoints.csv"), customFile)
+        return HandlerFile(File("defaultFiles/waypoints.csv"), customFile)
     }
 
     println("Error: waypoints.csv and custom-parameters.yml not found\nMount standard waypoints.csv and custom-parameters.yml")
-    return HandlerFile(File("defaultInputFiles/waypoints.csv"), File("defaultInputFiles/custom-parameters.yml"))
+    return HandlerFile(File("defaultFiles/waypoints.csv"), File("defaultFiles/custom-parameters.yml"))
 }
 
 fun main() {
@@ -203,9 +203,17 @@ fun main() {
 
     val jsonResult = jsonFormatter.encodeToString(analysisResult)
 
-    val directory= File("outputFiles")
-    File(directory, "output.json").writeText(jsonResult)
+    val directory= File("files")
+    val subDirectory = File(directory, "output")
+    if (!subDirectory.exists()) {
+        subDirectory.mkdirs()
+    }
 
+    val outfile= File(subDirectory, "output.json")
+    if (! outfile.exists()) {
+        outfile.createNewFile()
+    }
+    outfile.writeText(jsonResult)
     println("Result saved in output.json")
 
 }

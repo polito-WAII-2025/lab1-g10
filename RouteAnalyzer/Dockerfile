@@ -20,7 +20,7 @@ WORKDIR /app
 COPY --from=build /app/build/libs/RouteAnalyzer-1.0-SNAPSHOT-all.jar app.jar
 
 # Cuopy standard files
-COPY ./src/main/resources /app/defaultInputFiles
+COPY ./src/main/resources /app/defaultFiles
 
 # Command to start the application
 CMD ["java", "-jar", "app.jar"]
