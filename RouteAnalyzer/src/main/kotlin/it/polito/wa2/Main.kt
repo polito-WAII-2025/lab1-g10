@@ -35,20 +35,12 @@ data class MostFrequentedAreaResult(val centralWaypoint: Waypoint, val areaRadiu
 @Serializable
 data class AnalysisResult(val maxDistanceFromStart: MaxDistanceResult?, val mostFrequentedArea: MostFrequentedAreaResult?, val waypointsOutsideGeofence: WaypointsOutsideGeofence)
 
-fun loadConfig(filePath: String): Config? {
-    return try {
-        val file = File(filePath)
-        if (!file.exists()) {
-            println("Errore: Il file YAML non esiste -> $filePath")
-            return null
-        }
+data class HandlerFile(val waypoints: File, val custom: File)
 
-        val yamlMapper = YAMLMapper()
-        yamlMapper.readValue(file, Config::class.java) // Converte il YAML in Config
-    } catch (e: Exception) {
-        println("Errore nella lettura del file YAML: ${e.message}")
-        null
-    }
+fun loadConfig(file: File): Config {
+    val yamlMapper = YAMLMapper()
+    return yamlMapper.readValue(file, Config::class.java) // Converte il YAML in Config
+
 }
 
 fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiusKm: Double): Double {
@@ -136,90 +128,81 @@ fun waypointsOutsideGeofence(
     )
 }
 
-fun readCsv(percorsoFile: String): List<Waypoint> {
-    if (!percorsoFile.endsWith(".csv")) {
-        println("Errore: Il file $percorsoFile non è un file CSV valido.")
-        throw IllegalArgumentException("Il file deve avere estensione .csv")
-    }
-
-    val file = File(percorsoFile)
-    if (!file.exists()) {
-        println("Errore: Il file $percorsoFile non esiste.")
-        throw IllegalStateException("Il file CSV non è stato trovato")
-    }
-
-    if (file.length() == 0L) {
-        println("Errore: Il file $percorsoFile è vuoto.")
-        throw IllegalStateException("Il file CSV è vuoto")
-    }
+fun readCsv(file: File): List<Waypoint> {
 
     val waypointList = mutableListOf<Waypoint>()
 
-    try {
-        file.bufferedReader().useLines { lines ->
-            lines.forEach { line ->
-                val fields = line.split(";")
-                if (fields.size == 3) {
-                    val waypoint = Waypoint(
-                        timestamp = fields[0].trim().toLongOrNull() ?: 0L,
-                        latitude = fields[1].trim().toDoubleOrNull() ?: 0.0,
-                        longitude = fields[2].trim().toDoubleOrNull() ?: 0.0
-                    )
-                    waypointList.add(waypoint)
-                } else {
-                    println("Attenzione: Riga con formato errato -> $line")
-                }
+    file.bufferedReader().useLines { lines ->
+        lines.forEach { line ->
+            val fields = line.split(";")
+            if (fields.size == 3) {
+                val waypoint = Waypoint(
+                    timestamp = fields[0].trim().toLongOrNull() ?: 0L,
+                    latitude = fields[1].trim().toDoubleOrNull() ?: 0.0,
+                    longitude = fields[2].trim().toDoubleOrNull() ?: 0.0
+                )
+                waypointList.add(waypoint)
+            } else {
+                println("Attention: row with wrong format-> $line")
             }
         }
-    } catch (e: Exception) {
-        println("Errore durante la lettura del file CSV: ${e.message}")
-        throw e
     }
 
     return waypointList
 }
 
-fun main() {
+fun mountFiles(): HandlerFile {
+    val directory= File("evaluation")
+    if (!directory.exists()) {
+        println("Error: Folder not found\nMount standard folder")
 
-    /* DOCKER */
-
-    //val points = File("evaluation/waypoints.csv").readText() --> apertura file waypoints.csv montato su docker
-
-    // Creazioni e scrittura file output.json su docker
-    //val directory= File("evaluation")
-    //val file= File(directory, "output.json")
-    //file.writeText("ciao")
-
-    // val points = File("resources/waypoints.csv").readText() --> apertura file waypoints.csv standard (inserito su docker)
-
-
-    try { val points = readCsv("src/main/resources/waypoints.csv")
-        //points.forEach{println(it)}
-        val config = loadConfig("src/main/resources/custom-parameters.yml")
-        val result = maxDistanceFromStart(points, config!!.earthRadiusKm)
-
-        if (result != null) {
-            val jsonResult = Json.encodeToString(result)
-            //File("max_distance_result.json").writeText(jsonResult)
-            //println("Risultato salvato in max_distance_result.json")
-            println(jsonResult)
-        }
-
-        val mostFrequentedRadius = config.mostFrequentedAreaRadiusKm ?: (maxDistanceBetweenPoints(points, config.earthRadiusKm) * 0.1)
-        val bestArea = mostFrequentedArea(points, mostFrequentedRadius, config.earthRadiusKm)
-        println("Most frequented area center: $bestArea")
-        println(config.earthRadiusKm)
-        val outside = waypointsOutsideGeofence(points, config.geofenceCenterLatitude, config.geofenceCenterLongitude, config.geofenceRadiusKm, config.earthRadiusKm)
-        println(outside)
-        val max = maxDistanceBetweenPoints(points, config.earthRadiusKm)
-        println(max)
-        val analysisResult = AnalysisResult(result, bestArea, outside)
-        val jsonResult = Json.encodeToString(analysisResult)
-        File("src/main/resources/output.json").writeText(jsonResult)
-
-        println("Risultato salvato in output.json")
-    } catch (e: Exception) {
-        println("Il programma è stato interrotto a causa di un errore: ${e.message}")
+        return HandlerFile(File("resources/waypoints.csv"),File("resources/custom-parameters.yml"))
     }
+
+    val waypointsFile = File(directory, "waypoints.csv")
+    val customFile = File(directory, "custom-parameters.yml")
+
+    val checkWaypoint= waypointsFile.exists() && waypointsFile.length()> 0
+    val checkCustom= customFile.exists() && customFile.length()> 0
+
+    if(checkWaypoint){
+        if(checkCustom){
+            return HandlerFile(waypointsFile, customFile)
+        }
+        println("Error: custom-parameters.yml not found\nMount standard custom-parameters.yml")
+        return HandlerFile(waypointsFile, File("resources/custom-parameters.yml"))
+    }
+
+    if(checkCustom){
+        println("Error: waypoints.csv not found\nMount standard waypoints.csv")
+        return HandlerFile(File("resources/waypoints.csv"), customFile)
+    }
+
+    println("Error: waypoints.csv and custom-parameters.yml not found\nMount standard waypoints.csv and custom-parameters.yml")
+    return HandlerFile(File("resources/waypoints.csv"), File("resources/custom-parameters.yml"))
+}
+
+fun main() {
+    val files = mountFiles()
+
+    val points = readCsv(files.waypoints)
+    val config = loadConfig(files.custom)
+    val maxDistance = maxDistanceFromStart(points, config.earthRadiusKm)
+
+    val mostFrequentedRadius = config.mostFrequentedAreaRadiusKm ?: (maxDistanceBetweenPoints(points, config.earthRadiusKm) * 0.1)
+    val bestArea = mostFrequentedArea(points, mostFrequentedRadius, config.earthRadiusKm)
+    println("Most frequented area center: $bestArea")
+    println(config.earthRadiusKm)
+    val outside = waypointsOutsideGeofence(points, config.geofenceCenterLatitude, config.geofenceCenterLongitude, config.geofenceRadiusKm, config.earthRadiusKm)
+    println(outside)
+    val max = maxDistanceBetweenPoints(points, config.earthRadiusKm)
+    println(max)
+    val analysisResult = AnalysisResult(maxDistance, bestArea, outside)
+    val jsonResult = Json.encodeToString(analysisResult)
+
+    val directory= File("evaluation")
+    File(directory, "output.json").writeText(jsonResult)
+
+    println("Result saved in output.json")
 
 }
