@@ -153,11 +153,11 @@ fun readCsv(file: File): List<Waypoint> {
 }
 
 fun mountFiles(): HandlerFile {
-    val directory= File("evaluation")
+    val directory= File("inputFiles")
     if (!directory.exists()) {
         println("Error: Folder not found\nMount standard folder")
 
-        return HandlerFile(File("resources/waypoints.csv"),File("resources/custom-parameters.yml"))
+        return HandlerFile(File("defaultInputFiles/waypoints.csv"),File("defaultInputFiles/custom-parameters.yml"))
     }
 
     val waypointsFile = File(directory, "waypoints.csv")
@@ -171,16 +171,16 @@ fun mountFiles(): HandlerFile {
             return HandlerFile(waypointsFile, customFile)
         }
         println("Error: custom-parameters.yml not found\nMount standard custom-parameters.yml")
-        return HandlerFile(waypointsFile, File("resources/custom-parameters.yml"))
+        return HandlerFile(waypointsFile, File("defaultInputFiles/custom-parameters.yml"))
     }
 
     if(checkCustom){
         println("Error: waypoints.csv not found\nMount standard waypoints.csv")
-        return HandlerFile(File("resources/waypoints.csv"), customFile)
+        return HandlerFile(File("defaultInputFiles/waypoints.csv"), customFile)
     }
 
     println("Error: waypoints.csv and custom-parameters.yml not found\nMount standard waypoints.csv and custom-parameters.yml")
-    return HandlerFile(File("resources/waypoints.csv"), File("resources/custom-parameters.yml"))
+    return HandlerFile(File("defaultInputFiles/waypoints.csv"), File("defaultInputFiles/custom-parameters.yml"))
 }
 
 fun main() {
@@ -202,9 +202,8 @@ fun main() {
     val jsonFormatter = Json { prettyPrint = true }
 
     val jsonResult = jsonFormatter.encodeToString(analysisResult)
-    File("src/main/resources/output.json").writeText(jsonResult)
 
-    val directory= File("evaluation")
+    val directory= File("outputFiles")
     File(directory, "output.json").writeText(jsonResult)
 
     println("Result saved in output.json")
