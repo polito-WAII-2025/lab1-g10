@@ -199,7 +199,10 @@ fun main() {
     val max = maxDistanceBetweenPoints(points, config.earthRadiusKm)
     println(max)
     val analysisResult = AnalysisResult(maxDistance, bestArea, outside)
-    val jsonResult = Json.encodeToString(analysisResult)
+    val jsonFormatter = Json { prettyPrint = true }
+
+    val jsonResult = jsonFormatter.encodeToString(analysisResult)
+    File("src/main/resources/output.json").writeText(jsonResult)
 
     val directory= File("evaluation")
     File(directory, "output.json").writeText(jsonResult)
