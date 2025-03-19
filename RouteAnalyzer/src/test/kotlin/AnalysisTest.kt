@@ -15,7 +15,7 @@ class AnalysisTest {
 
         val distance = haversine(lat1, lon1, lat2, lon2, earthRadiusKm)
 
-        assertEquals(13.95, distance, 0.5, "La distanza calcolata è errata")
+        assertEquals(13.95, distance, 0.5, "The calculated distance is incorrect")
     }
 
     @Test
@@ -29,9 +29,9 @@ class AnalysisTest {
 
         val result = maxDistanceFromStart(waypoints, earthRadiusKm)
 
-        assertNotNull(result, "Il risultato non dovrebbe essere nullo")
-        assertEquals(waypoints.last(), result!!.waypoint, "Il waypoint più distante non è corretto")
-        assertTrue(result.distanceKm > 0, "La distanza non dovrebbe essere zero")
+        assertNotNull(result, "The result should not be null")
+        assertEquals(waypoints.last(), result!!.waypoint, "The farthest waypoint is incorrect")
+        assertTrue(result.distanceKm > 0, "The distance should not be zero")
     }
 
     @Test
@@ -45,7 +45,7 @@ class AnalysisTest {
 
         val maxDistance = maxDistanceBetweenPoints(waypoints, earthRadiusKm)
 
-        assertTrue(maxDistance > 0, "La distanza massima dovrebbe essere maggiore di zero")
+        assertTrue(maxDistance > 0, "The maximum distance should be greater than zero")
     }
 
     @Test
@@ -62,8 +62,8 @@ class AnalysisTest {
 
         val result = mostFrequentedArea(waypoints, radius, earthRadiusKm)
 
-        assertNotNull(result, "L'area più frequentata non dovrebbe essere nulla")
-        assertTrue(result!!.entriesCount > 1, "Ci dovrebbero essere almeno 2 punti nell'area più frequentata")
+        assertNotNull(result, "The most frequented area should not be null")
+        assertTrue(result!!.entriesCount > 1, "There should be at least 2 points in the most frequented area")
     }
 
     @Test
@@ -80,23 +80,23 @@ class AnalysisTest {
 
         val result = waypointsOutsideGeofence(waypoints, centerLat, centerLon, radius, earthRadiusKm)
 
-        assertEquals(1, result.count, "Dovrebbe esserci un solo waypoint fuori dalla geofence")
+        assertEquals(1, result.count, "There should be only one waypoint outside the geofence")
     }
 
     @Test
     fun testLoadConfig() {
         val config = loadConfig("src/test/resources/test-config.yml")
 
-        assertNotNull(config, "Il file di configurazione non dovrebbe essere nullo")
-        assertEquals(6371.0, config!!.earthRadiusKm, "Il raggio terrestre dovrebbe essere corretto")
+        assertNotNull(config, "The yml file should not be null")
+        assertEquals(6371.0, config!!.earthRadiusKm, "The Earth radius should be correct")
     }
 
     @Test
     fun testReadCsv() {
         val waypoints = readCsv("src/test/resources/test-waypoints.csv")
 
-        assertEquals(3, waypoints.size, "Dovrebbero esserci 3 waypoint nel CSV")
-        assertEquals(45.0, waypoints[0].latitude, "La latitudine del primo waypoint non è corretta")
+        assertEquals(3, waypoints.size, "There should be 3 waypoints in the CSV")
+        assertEquals(45.0, waypoints[0].latitude, "The latitude of the first waypoint is incorrect")
     }
 
 }
