@@ -41,6 +41,7 @@ fun loadConfig(file: File): Config {
     val yamlMapper = YAMLMapper()
     return yamlMapper.readValue(file, Config::class.java) // Converte il YAML in Config
 
+
 }
 
 fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiusKm: Double): Double {
@@ -55,7 +56,7 @@ fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiu
             sin(deltaLambda / 2) * sin(deltaLambda / 2)
     val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-    return (earthRadiusKm * c) / 1000 // Converti in km
+    return (earthRadiusKm * c)
 }
 
 fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxDistanceResult? {
@@ -143,7 +144,7 @@ fun readCsv(file: File): List<Waypoint> {
                 )
                 waypointList.add(waypoint)
             } else {
-                println("Attention: row with wrong format-> $line")
+                println("Warning: Line with incorrect format-> $line")
             }
         }
     }
