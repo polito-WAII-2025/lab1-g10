@@ -2,6 +2,7 @@ package it.polito.wa2
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class AnalysisTest {
 
@@ -85,15 +86,17 @@ class AnalysisTest {
 
     @Test
     fun testLoadConfig() {
-        val config = loadConfig("src/test/resources/test-config.yml")
+        val file = File("src/test/resources/test-config.yml")
+        val config = loadConfig(file)
 
         assertNotNull(config, "The yml file should not be null")
-        assertEquals(6371.0, config!!.earthRadiusKm, "The Earth radius should be correct")
+        assertEquals(6371.0, config.earthRadiusKm, "The Earth radius should be correct")
     }
 
     @Test
     fun testReadCsv() {
-        val waypoints = readCsv("src/test/resources/test-waypoints.csv")
+        val file = File("src/test/resources/test-waypoints.csv")
+        val waypoints = readCsv(file)
 
         assertEquals(3, waypoints.size, "There should be 3 waypoints in the CSV")
         assertEquals(45.0, waypoints[0].latitude, "The latitude of the first waypoint is incorrect")
