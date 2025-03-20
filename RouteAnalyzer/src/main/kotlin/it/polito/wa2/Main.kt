@@ -37,6 +37,7 @@ data class AnalysisResult(val maxDistanceFromStart: MaxDistanceResult?, val most
 
 data class HandlerFile(val waypoints: File, val custom: File)
 
+// Load configuration parameters from a YAML file
 fun loadConfig(file: File): Config {
     val yamlMapper = YAMLMapper()
     return yamlMapper.readValue(file, Config::class.java) // Converte il YAML in Config
@@ -44,6 +45,7 @@ fun loadConfig(file: File): Config {
 
 }
 
+// Compute the great-circle distance between two points using the Haversine formula
 fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiusKm: Double): Double {
 
     val phi1 = Math.toRadians(lat1)
@@ -59,6 +61,7 @@ fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiu
     return (earthRadiusKm * c)
 }
 
+// Find the farthest waypoint from the starting point
 fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxDistanceResult? {
     if (waypoints.isEmpty()) return null
 
@@ -69,6 +72,7 @@ fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxD
     return farthest?.let { MaxDistanceResult(it, maxDistance) }
 }
 
+// Compute the maximum distance between any two waypoints
 fun maxDistanceBetweenPoints(waypoints: List<Waypoint>, earthRadiusKm: Double): Double {
     var maxDistance = 0.0
 
@@ -88,6 +92,7 @@ fun maxDistanceBetweenPoints(waypoints: List<Waypoint>, earthRadiusKm: Double): 
     return maxDistance
 }
 
+// Find the most frequently visited area within a specified radius
 fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm: Double): MostFrequentedAreaResult? {
     if (waypoints.isEmpty()) return null
 
@@ -108,6 +113,7 @@ fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm:
     return bestCenter?.let { MostFrequentedAreaResult(it, radius, maxCount) }
 }
 
+// Identify waypoints that fall outside the defined geofence
 fun waypointsOutsideGeofence(
     waypoints: List<Waypoint>,
     centerLat: Double,
@@ -129,6 +135,7 @@ fun waypointsOutsideGeofence(
     )
 }
 
+// Read waypoints from a CSV file
 fun readCsv(file: File): List<Waypoint> {
 
     val waypointList = mutableListOf<Waypoint>()
@@ -190,7 +197,8 @@ fun main() {
     val config = loadConfig(files.custom)
     val maxDistance = maxDistanceFromStart(points, config.earthRadiusKm)
 
-    val mostFrequentedRadius = config.mostFrequentedAreaRadiusKm ?: (maxDistanceBetweenPoints(points, config.earthRadiusKm) * 0.1)
+    val maxDistBetweenPoints = maxDistanceBetweenPoints(points, config.earthRadiusKm)
+    val mostFrequentedRadius = config.mostFrequentedAreaRadiusKm ?: if (maxDistBetweenPoints < 1) 0.1 else maxDistBetweenPoints * 0.1
     val bestArea = mostFrequentedArea(points, mostFrequentedRadius, config.earthRadiusKm)
     println("Most frequented area center: $bestArea")
     println(config.earthRadiusKm)
