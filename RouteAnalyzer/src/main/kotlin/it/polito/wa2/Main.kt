@@ -35,6 +35,15 @@ data class MostFrequentedAreaResult(val centralWaypoint: Waypoint, val areaRadiu
 @Serializable
 data class AnalysisResult(val maxDistanceFromStart: MaxDistanceResult?, val mostFrequentedArea: MostFrequentedAreaResult?, val waypointsOutsideGeofence: WaypointsOutsideGeofence)
 
+@Serializable
+data class AdvancedAnalysisResult(val totalPathLength: PathLength, val intersections: Intersections)
+
+@Serializable
+data class PathLength(val km: Double)
+
+@Serializable
+data class Intersections(val waypoints : List<Waypoint>)
+
 data class HandlerFile(val waypoints: File, val custom: File)
 
 // Load configuration parameters from a YAML file
@@ -135,6 +144,37 @@ fun waypointsOutsideGeofence(
     )
 }
 
+fun calculatePathLength(waypoints: List<Waypoint>, earthRadiusKm: Double): Double {
+    if (waypoints.size < 2) return 0.0
+
+    var totalDistance = 0.0
+    for (i in 0 until waypoints.size - 1) {
+        totalDistance += haversine(
+            waypoints[i].latitude, waypoints[i].longitude,
+            waypoints[i + 1].latitude, waypoints[i + 1].longitude,
+            earthRadiusKm
+        )
+    }
+    return totalDistance
+}
+
+// Function to find intersections during the path
+fun findIntersections(waypoints: List<Waypoint>): List<Waypoint> {
+    val intersections = mutableListOf<Waypoint>()
+    val visited = mutableSetOf<Pair<Double, Double>>()
+
+    for (waypoint in waypoints) {
+        val location = Pair(waypoint.latitude, waypoint.longitude)
+        if (location in visited) {
+            intersections.add(waypoint)
+        } else {
+            visited.add(location)
+        }
+    }
+
+    return intersections
+}
+
 // Read waypoints from a CSV file
 fun readCsv(file: File): List<Waypoint> {
 
@@ -158,6 +198,8 @@ fun readCsv(file: File): List<Waypoint> {
 
     return waypointList
 }
+
+
 
 fun mountFiles(): HandlerFile {
     val directory= File("files")
@@ -211,17 +253,34 @@ fun main() {
 
     val jsonResult = jsonFormatter.encodeToString(analysisResult)
 
-    val directory= File("files")
+    val directory = File("files")
     val subDirectory = File(directory, "output")
     if (!subDirectory.exists()) {
         subDirectory.mkdirs()
     }
 
-    val outfile= File(subDirectory, "output.json")
-    if (! outfile.exists()) {
+    val outfile = File(subDirectory, "output.json")
+    if (!outfile.exists()) {
         outfile.createNewFile()
     }
     outfile.writeText(jsonResult)
     println("Result saved in output.json")
 
+    // Calculate the total path length
+    val totalPathLength = PathLength(calculatePathLength(points, config.earthRadiusKm))
+    println("Total path length: $totalPathLength km")
+
+    // Find intersections during the path
+    val intersections = Intersections(findIntersections(points))
+    println(intersections)
+    // Save the path length and intersections in output_advanced.json
+    val advancedOutfile = File(subDirectory, "output_advanced.json")
+    if (!advancedOutfile.exists()) {
+        advancedOutfile.createNewFile()
+    }
+
+    val analysisResultAdvanced = AdvancedAnalysisResult(totalPathLength, intersections)
+    val jsonResultAdvanced = jsonFormatter.encodeToString(analysisResultAdvanced)
+    advancedOutfile.writeText(jsonResultAdvanced)
+    println("Path length and intersections saved in output_advanced.json")
 }
