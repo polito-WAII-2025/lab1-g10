@@ -1,4 +1,4 @@
-earthRadiusKm: 6371e3
+earthRadiusKm: 6371.0
 geofenceCenterLatitude: 45.0703
 geofenceCenterLongitude: 7.6869
 geofenceRadiusKm: 10.0

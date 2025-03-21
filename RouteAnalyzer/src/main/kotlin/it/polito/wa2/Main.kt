@@ -164,7 +164,7 @@ fun mountFiles(): HandlerFile {
     if (!directory.exists()) {
         println("Error: Folder not found\nMount standard folder")
 
-        return HandlerFile(File("defaultFiles/waypoints.csv"),File("defaultFiles/custom-parameters.yml"))
+        return HandlerFile(File("src/main/resources/waypoints.csv"),File("src/main/resources/custom-parameters.yml"))
     }
 
     val waypointsFile = File(directory, "waypoints.csv")
@@ -178,16 +178,16 @@ fun mountFiles(): HandlerFile {
             return HandlerFile(waypointsFile, customFile)
         }
         println("Error: custom-parameters.yml not found\nMount standard custom-parameters.yml")
-        return HandlerFile(waypointsFile, File("defaultFiles/custom-parameters.yml"))
+        return HandlerFile(waypointsFile, File("src/main/resources/custom-parameters.yml"))
     }
 
     if(checkCustom){
         println("Error: waypoints.csv not found\nMount standard waypoints.csv")
-        return HandlerFile(File("defaultFiles/waypoints.csv"), customFile)
+        return HandlerFile(File("src/main/resources/waypoints.csv"), customFile)
     }
 
     println("Error: waypoints.csv and custom-parameters.yml not found\nMount standard waypoints.csv and custom-parameters.yml")
-    return HandlerFile(File("defaultFiles/waypoints.csv"), File("defaultFiles/custom-parameters.yml"))
+    return HandlerFile(File("src/main/resources/waypoints.csv"), File("src/main/resources/custom-parameters.yml"))
 }
 
 fun main() {
