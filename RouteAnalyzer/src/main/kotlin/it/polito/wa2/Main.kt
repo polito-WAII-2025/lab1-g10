@@ -185,7 +185,7 @@ fun readCsv(file: File): List<Waypoint> {
             val fields = line.split(";")
             if (fields.size == 3) {
                 val waypoint = Waypoint(
-                    timestamp = fields[0].trim().toLongOrNull() ?: 0L,
+                    timestamp = fields[0].trim().toDoubleOrNull()?.toLong() ?: 0L,
                     latitude = fields[1].trim().toDoubleOrNull() ?: 0.0,
                     longitude = fields[2].trim().toDoubleOrNull() ?: 0.0
                 )

@@ -102,4 +102,36 @@ class AnalysisTest {
         assertEquals(45.0, waypoints[0].latitude, "The latitude of the first waypoint is incorrect")
     }
 
+    @Test
+    fun testCalculatePathLength() {
+        val earthRadiusKm = 6371.0
+
+        val waypoints = listOf(
+            Waypoint(1, 45.0, 7.0),
+            Waypoint(2, 45.1, 7.1),
+            Waypoint(3, 45.2, 7.2)
+        )
+
+        val length = calculatePathLength(waypoints, earthRadiusKm)
+
+        assertTrue(length > 0, "The path length should be greater than 0")
+        assertEquals(2, waypoints.size - 1, "Expected 2 segments")
+    }
+
+    @Test
+    fun testFindIntersections() {
+        val waypoints = listOf(
+            Waypoint(1, 45.0, 7.0),
+            Waypoint(2, 45.1, 7.1),
+            Waypoint(3, 45.0, 7.0), // Duplicate
+            Waypoint(4, 45.2, 7.2),
+            Waypoint(5, 45.0, 7.0)  // Duplicate again
+        )
+
+        val intersections = findIntersections(waypoints)
+
+        assertEquals(2, intersections.size, "Should detect 2 repeated waypoints")
+        assertTrue(intersections.all { it.latitude == 45.0 && it.longitude == 7.0 })
+    }
+
 }
