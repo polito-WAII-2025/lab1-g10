@@ -10,7 +10,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
-@JsonIgnoreProperties(ignoreUnknown = true) // Ignora eventuali campi extra nel file YAML
+@JsonIgnoreProperties(ignoreUnknown = true) // Ignore  extra fields in the YAML file
 data class Config @JsonCreator constructor(
     @JsonProperty("earthRadiusKm") val earthRadiusKm: Double,
     @JsonProperty("geofenceCenterLatitude") val geofenceCenterLatitude: Double,
@@ -33,10 +33,10 @@ data class MostFrequentedAreaResult(val centralWaypoint: Waypoint, val areaRadiu
                                                   val areaRadiusKm: Double, val count: Int, val waypoints: List<Waypoint>)
 
 @Serializable
-data class AnalysisResult(val maxDistanceFromStart: MaxDistanceResult?, val mostFrequentedArea: MostFrequentedAreaResult?, val waypointsOutsideGeofence: WaypointsOutsideGeofence)
+data class AnalysisResult(val maxDistanceFromStart: MaxDistanceResult, val mostFrequentedArea: MostFrequentedAreaResult, val waypointsOutsideGeofence: WaypointsOutsideGeofence)
 
 @Serializable
-data class AdvancedAnalysisResult(val totalPathLength: PathLength, val intersections: Intersections)
+data class AdvancedAnalysisResult(val totalPathLength: PathLength, val intersections: Intersections, val maxDistanceBetweenPoints: MaxDistanceBetweenPoints)
 
 @Serializable
 data class PathLength(val km: Double)
@@ -44,12 +44,15 @@ data class PathLength(val km: Double)
 @Serializable
 data class Intersections(val waypoints : List<Waypoint>)
 
+@Serializable
+data class MaxDistanceBetweenPoints(var km: Double, var waypoint1: Waypoint, var waypoint2: Waypoint)
+
 data class HandlerFile(val waypoints: File, val custom: File)
 
 // Load configuration parameters from a YAML file
 fun loadConfig(file: File): Config {
     val yamlMapper = YAMLMapper()
-    return yamlMapper.readValue(file, Config::class.java) // Converte il YAML in Config
+    return yamlMapper.readValue(file, Config::class.java) // Convert YAML in Config
 
 
 }
@@ -71,19 +74,19 @@ fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double, earthRadiu
 }
 
 // Find the farthest waypoint from the starting point
-fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxDistanceResult? {
-    if (waypoints.isEmpty()) return null
+fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxDistanceResult {
+
 
     val start = waypoints.first()
-    val farthest = waypoints.maxByOrNull { haversine(start.latitude, start.longitude, it.latitude, it.longitude, earthRadiusKm) }
-    val maxDistance = farthest?.let { haversine(start.latitude, start.longitude, it.latitude, it.longitude, earthRadiusKm) } ?: 0.0
+    val farthest = waypoints.maxBy{ haversine(start.latitude, start.longitude, it.latitude, it.longitude, earthRadiusKm) }
+    val maxDistance = farthest.let { haversine(start.latitude, start.longitude, it.latitude, it.longitude, earthRadiusKm) }
 
-    return farthest?.let { MaxDistanceResult(it, maxDistance) }
+    return MaxDistanceResult(farthest, maxDistance)
 }
 
 // Compute the maximum distance between any two waypoints
-fun maxDistanceBetweenPoints(waypoints: List<Waypoint>, earthRadiusKm: Double): Double {
-    var maxDistance = 0.0
+fun maxDistanceBetweenPoints(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxDistanceBetweenPoints {
+    val result= MaxDistanceBetweenPoints(0.0, Waypoint(0,0.0,0.0), Waypoint(0,0.0,0.0))
 
     for (i in waypoints.indices) {
         for (j in i + 1 until waypoints.size) {
@@ -92,21 +95,23 @@ fun maxDistanceBetweenPoints(waypoints: List<Waypoint>, earthRadiusKm: Double): 
                 waypoints[j].latitude, waypoints[j].longitude,
                 earthRadiusKm
             )
-            if (distance > maxDistance) {
-                maxDistance = distance
+            if (distance > result.km) {
+                result.km = distance
+                result.waypoint1 = waypoints[i]
+                result.waypoint2 = waypoints[j]
+
             }
         }
     }
 
-    return maxDistance
+    return result
 }
 
 // Find the most frequently visited area within a specified radius
-fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm: Double): MostFrequentedAreaResult? {
-    if (waypoints.isEmpty()) return null
+fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm: Double): MostFrequentedAreaResult {
 
     var maxCount = 0
-    var bestCenter: Waypoint? = null
+    var bestCenter = Waypoint(0,0.0,0.0)
 
     for (center in waypoints) {
         val count = waypoints.count { wp ->
@@ -119,7 +124,7 @@ fun mostFrequentedArea(waypoints: List<Waypoint>, radius: Double, earthRadiusKm:
         }
     }
 
-    return bestCenter?.let { MostFrequentedAreaResult(it, radius, maxCount) }
+    return MostFrequentedAreaResult(bestCenter, radius, maxCount)
 }
 
 // Identify waypoints that fall outside the defined geofence
@@ -217,6 +222,7 @@ fun mountFiles(): HandlerFile {
 
     if(checkWaypoint){
         if(checkCustom){
+            println("Files mounted correctly")
             return HandlerFile(waypointsFile, customFile)
         }
         println("Error: custom-parameters.yml not found\nMount standard custom-parameters.yml")
@@ -237,17 +243,13 @@ fun main() {
 
     val points = readCsv(files.waypoints)
     val config = loadConfig(files.custom)
-    val maxDistance = maxDistanceFromStart(points, config.earthRadiusKm)
 
-    val maxDistBetweenPoints = maxDistanceBetweenPoints(points, config.earthRadiusKm)
-    val mostFrequentedRadius = config.mostFrequentedAreaRadiusKm ?: if (maxDistBetweenPoints < 1) 0.1 else maxDistBetweenPoints * 0.1
+    val maxDistance = maxDistanceFromStart(points, config.earthRadiusKm)
+    val mostFrequentedRadius = config.mostFrequentedAreaRadiusKm ?: if (maxDistance.distanceKm < 1) 0.1 else maxDistance.distanceKm * 0.1
+
     val bestArea = mostFrequentedArea(points, mostFrequentedRadius, config.earthRadiusKm)
-    println("Most frequented area center: $bestArea")
-    println(config.earthRadiusKm)
     val outside = waypointsOutsideGeofence(points, config.geofenceCenterLatitude, config.geofenceCenterLongitude, config.geofenceRadiusKm, config.earthRadiusKm)
-    println(outside)
-    val max = maxDistanceBetweenPoints(points, config.earthRadiusKm)
-    println(max)
+
     val analysisResult = AnalysisResult(maxDistance, bestArea, outside)
     val jsonFormatter = Json { prettyPrint = true }
 
@@ -268,18 +270,18 @@ fun main() {
 
     // Calculate the total path length
     val totalPathLength = PathLength(calculatePathLength(points, config.earthRadiusKm))
-    println("Total path length: $totalPathLength km")
 
     // Find intersections during the path
     val intersections = Intersections(findIntersections(points))
-    println(intersections)
     // Save the path length and intersections in output_advanced.json
     val advancedOutfile = File(subDirectory, "output_advanced.json")
     if (!advancedOutfile.exists()) {
         advancedOutfile.createNewFile()
     }
 
-    val analysisResultAdvanced = AdvancedAnalysisResult(totalPathLength, intersections)
+    val max = maxDistanceBetweenPoints(points, config.earthRadiusKm)
+    val analysisResultAdvanced = AdvancedAnalysisResult(totalPathLength, intersections, max)
+
     val jsonResultAdvanced = jsonFormatter.encodeToString(analysisResultAdvanced)
     advancedOutfile.writeText(jsonResultAdvanced)
     println("Path length and intersections saved in output_advanced.json")

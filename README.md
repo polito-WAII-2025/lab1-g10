@@ -41,7 +41,7 @@ If these files are **not** found, the application will use default versions of t
 
 After execution, a new directory called `output` will be created inside the mounted folder (`folderToMount`). This directory will contain:
 - `output.json`
-- `output_custom.json`
+- `output_advanced.json`
 
 These files contain the results of the processing performed by the application.
 

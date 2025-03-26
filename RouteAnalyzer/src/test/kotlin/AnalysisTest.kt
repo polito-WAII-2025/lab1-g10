@@ -46,7 +46,9 @@ class AnalysisTest {
 
         val maxDistance = maxDistanceBetweenPoints(waypoints, earthRadiusKm)
 
-        assertTrue(maxDistance > 0, "The maximum distance should be greater than zero")
+        assertTrue(maxDistance.km > 0, "The maximum distance should be greater than zero")
+        assertEquals(waypoints[0], maxDistance.waypoint1, "The first waypoint is incorrect")
+        assertEquals(waypoints[2], maxDistance.waypoint2, "The second waypoint is incorrect")
     }
 
     @Test
@@ -59,7 +61,7 @@ class AnalysisTest {
             Waypoint(4, 46.0, 8.0)
         )
 
-        val radius = 100.0 // 100 metri
+        val radius = 0.1 // 100 metri
 
         val result = mostFrequentedArea(waypoints, radius, earthRadiusKm)
 

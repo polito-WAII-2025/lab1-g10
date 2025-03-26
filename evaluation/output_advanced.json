@@ -1,0 +1,47 @@
+{
+    "totalPathLength": {
+        "km": 16.870773139398285
+    },
+    "intersections": {
+        "waypoints": [
+            {
+                "timestamp": 1741357639546,
+                "latitude": 45.07554,
+                "longitude": 7.68668
+            },
+            {
+                "timestamp": 1741357639992,
+                "latitude": 45.07584,
+                "longitude": 7.65622
+            },
+            {
+                "timestamp": 1741357640283,
+                "latitude": 45.08386,
+                "longitude": 7.63244
+            },
+            {
+                "timestamp": 1741357640663,
+                "latitude": 45.09842,
+                "longitude": 7.63825
+            },
+            {
+                "timestamp": 1741357640986,
+                "latitude": 45.09533,
+                "longitude": 7.6669
+            }
+        ]
+    },
+    "maxDistanceBetweenPoints": {
+        "km": 5.206279567221797,
+        "waypoint1": {
+            "timestamp": 1741357639587,
+            "latitude": 45.07455,
+            "longitude": 7.69001
+        },
+        "waypoint2": {
+            "timestamp": 1741357640374,
+            "latitude": 45.08467,
+            "longitude": 7.62527
+        }
+    }
+}
