@@ -7,9 +7,9 @@ This guide explains how to build and run the Docker container for the **RoutAnal
 
 ### Building the Docker Image
 
-1. Navigate to the `RoutAnalyzer` directory:
+1. Navigate to the `RouteAnalyzer` directory:
    ```sh
-   cd RoutAnalyzer
+   cd RouteAnalyzer
    ```
 2. Build the Docker image using the following command:
    ```sh

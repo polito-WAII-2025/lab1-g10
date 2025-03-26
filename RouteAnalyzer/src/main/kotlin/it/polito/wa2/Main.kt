@@ -78,8 +78,8 @@ fun maxDistanceFromStart(waypoints: List<Waypoint>, earthRadiusKm: Double): MaxD
 
 
     val start = waypoints.first()
-    val farthest = waypoints.maxBy{ haversine(start.latitude, start.longitude, it.latitude, it.longitude, earthRadiusKm) }
-    val maxDistance = farthest.let { haversine(start.latitude, start.longitude, it.latitude, it.longitude, earthRadiusKm) }
+    val farthest = waypoints.maxByOrNull{ haversine(start.latitude, start.longitude, it.latitude, it.longitude, earthRadiusKm) } !!
+    val maxDistance = haversine(start.latitude, start.longitude, farthest.latitude, farthest.longitude, earthRadiusKm)
 
     return MaxDistanceResult(farthest, maxDistance)
 }
