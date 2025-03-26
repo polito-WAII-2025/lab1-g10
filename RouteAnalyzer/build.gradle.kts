@@ -1,5 +1,7 @@
 plugins {
     kotlin("jvm") version "2.1.10"
+    kotlin("plugin.serialization") version "2.1.10"
+    id("com.gradleup.shadow") version "8.3.6"
     application
 }
 
@@ -12,13 +14,25 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0")
+
 }
 
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.jar{
+    manifest{
+        attributes["Main-Class"] = "it.polito.wa2.MainKt"
+    }
+}
+
 kotlin {
     jvmToolchain(17)
+
 }
 application{
     mainClass= "it.polito.wa2.MainKt"
