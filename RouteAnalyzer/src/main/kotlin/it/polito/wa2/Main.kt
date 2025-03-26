@@ -53,8 +53,6 @@ data class HandlerFile(val waypoints: File, val custom: File)
 fun loadConfig(file: File): Config {
     val yamlMapper = YAMLMapper()
     return yamlMapper.readValue(file, Config::class.java) // Convert YAML in Config
-
-
 }
 
 // Compute the great-circle distance between two points using the Haversine formula
@@ -241,8 +239,18 @@ fun mountFiles(): HandlerFile {
 fun main() {
     val files = mountFiles()
 
-    val points = readCsv(files.waypoints)
-    val config = loadConfig(files.custom)
+    var points = readCsv(files.waypoints)
+    if(points.isEmpty()){        
+        println("Error: No waypoints found.\nMount standard waypoints.csv")
+        points = readCsv(File("src/main/resources/waypoints.csv"))
+    }
+        
+    val config= try {
+        loadConfig(files.custom)
+    } catch (e: Exception) {
+        println("Error: Invalid parameters in custom-parameters.yml.\nMount standard custom-parameters.yml")
+        loadConfig(File("src/main/resources/custom-parameters.yml"))
+    }
 
     val maxDistance = maxDistanceFromStart(points, config.earthRadiusKm)
     val mostFrequentedRadius = config.mostFrequentedAreaRadiusKm ?: if (maxDistance.distanceKm < 1) 0.1 else maxDistance.distanceKm * 0.1
