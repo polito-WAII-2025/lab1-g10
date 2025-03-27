@@ -31,7 +31,7 @@ class AnalysisTest {
         val result = maxDistanceFromStart(waypoints, earthRadiusKm)
 
         assertNotNull(result, "The result should not be null")
-        assertEquals(waypoints.last(), result!!.waypoint, "The farthest waypoint is incorrect")
+        assertEquals(waypoints.last(), result.waypoint, "The farthest waypoint is incorrect")
         assertTrue(result.distanceKm > 0, "The distance should not be zero")
     }
 
@@ -66,7 +66,7 @@ class AnalysisTest {
         val result = mostFrequentedArea(waypoints, radius, earthRadiusKm)
 
         assertNotNull(result, "The most frequented area should not be null")
-        assertTrue(result!!.entriesCount > 1, "There should be at least 2 points in the most frequented area")
+        assertTrue(result.entriesCount > 1, "There should be at least 2 points in the most frequented area")
     }
 
     @Test
